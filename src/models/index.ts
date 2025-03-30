@@ -1,5 +1,6 @@
 export * from './users';
 export * from './chapters';
+export * from './memberships';
 
 import { Client } from '@libsql/client';
 
@@ -36,6 +37,23 @@ export const initializeTables = async (db: Client): Promise<void> => {
       )
     `);
 
+    // Create memberships table if it doesn't exist
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS memberships (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        User_ID TEXT NOT NULL,
+        Chapter_Id TEXT NOT NULL,
+        Chapter_Rank TEXT NOT NULL DEFAULT 'member',
+        Chapter_Status TEXT NOT NULL DEFAULT 'pending',
+        Warrior_Name TEXT NOT NULL,
+        CreatedAt DATETIME NOT NULL,
+        UpdatedAt DATETIME NOT NULL,
+        FOREIGN KEY (User_ID) REFERENCES users(User_ID),
+        FOREIGN KEY (Chapter_Id) REFERENCES chapters(Chapter_Id),
+        UNIQUE(User_ID, Chapter_Id)
+      )
+    `);
+
     // Check if User_ID column exists in users table
     try {
       await db.execute('SELECT User_ID FROM users LIMIT 1');
@@ -59,6 +77,11 @@ export const initializeTables = async (db: Client): Promise<void> => {
       await db.execute(`
         ALTER TABLE users 
         ALTER COLUMN User_ID SET NOT NULL
+      `);
+      
+      // Add UNIQUE constraint
+      await db.execute(`
+        CREATE UNIQUE INDEX IF NOT EXISTS users_user_id_unique ON users(User_ID)
       `);
       
       console.log('Added User_ID column to users table');

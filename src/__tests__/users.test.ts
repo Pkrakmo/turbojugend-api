@@ -76,7 +76,8 @@ describe('Users Endpoints', () => {
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
-        error: 'User already exists'
+        success: false,
+        message: 'User with this email or GoogleUserId already exists'
       });
     });
 
@@ -121,7 +122,7 @@ describe('Users Endpoints', () => {
 
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('success', false);
-      expect(response.body.message).toContain('Internal server error');
+      expect(response.body.message).toBe('Error creating user');
     });
   });
 
